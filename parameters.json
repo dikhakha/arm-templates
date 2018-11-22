@@ -3,10 +3,10 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "webAppName": {
-            "value": "dikhakha-githubaction1"
+            "value": "dikhakha-githubaction223"
         },
         "hostingPlanName": {
-            "value": "dikhakha-plan-gh1"
+            "value": "dikhakha-plan-gh23"
         }
     }
 }
