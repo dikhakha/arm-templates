@@ -3,31 +3,52 @@
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
+# Node.js Express Web App on Linux
+# Build a Node.js Express app and deploy it as a Linux web app.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
 trigger:
 - master
 
-pool:
-  vmImage: 'Ubuntu-16.04'
+stages:
+- stage: Build
+  jobs:
+  - job: BuildJob
+    pool:
+      vmImage: 'vs2017-win2016'
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '10.x'
+      displayName: 'Install Node.js'
 
-- task: ArchiveFiles@2
-  displayName: 'Archive files'
-  inputs:
-    rootFolderOrFile: ''
-    includeRootFolder: false
-    archiveType: zip
-    archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-    replaceExistingArchive: true
+    - script: |
+        npm install
+        npm build
+      displayName: 'npm install and build'
 
-- task: AzureWebApp@1
-  displayName: 'Azure Web App Deploy'
-  inputs:
-    azureSubscription: '60a760b2-d2f9-40d4-b6c2-8a56decefcbd'
-    appType: webApp
-    appName: 'dikhakha1'
-    package: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+    - task: ArchiveFiles@2
+      displayName: 'Archive files'
+      inputs:
+          rootFolderOrFile: ''
+          includeRootFolder: false
+          archiveType: zip
+          archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+          replaceExistingArchive: true
+
+- stage: Release
+  jobs:
+  - job: ReleaseJob
+    pool:
+      vmImage: 'vs2017-win2016'
+
+    steps:
+    - task: AzureWebApp@1
+      displayName: 'Azure Web App Deploy'
+      inputs:
+        azureSubscription: '60a760b2-d2f9-40d4-b6c2-8a56decefcbd'
+        appType: webApp
+        appName: 'dikhakha1'
+        package: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
