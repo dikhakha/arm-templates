@@ -8,13 +8,20 @@
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
+# Node.js Express Web App on Linux
+# Build a Node.js Express app and deploy it as a Linux web app.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
 trigger:
 - master
 
 stages:
 - stage: Build
+  displayName: Build stage
   jobs:
   - job: BuildJob
+    displayName: Build Job
     pool:
       vmImage: 'vs2017-win2016'
 
@@ -32,23 +39,34 @@ stages:
     - task: ArchiveFiles@2
       displayName: 'Archive files'
       inputs:
-          rootFolderOrFile: ''
-          includeRootFolder: false
-          archiveType: zip
-          archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-          replaceExistingArchive: true
+        rootFolderOrFile: ''
+        includeRootFolder: false
+        archiveType: zip
+        archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+        replaceExistingArchive: true
 
-- stage: Release
+    - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      artifact: drop
+
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+  condition: succeeded()
   jobs:
-  - job: ReleaseJob
+  - deployment: Deploy
+    displayName: Deploy
+    environment: 'development'
     pool:
       vmImage: 'vs2017-win2016'
 
-    steps:
-    - task: AzureWebApp@1
-      displayName: 'Azure Web App Deploy'
-      inputs:
-        azureSubscription: '60a760b2-d2f9-40d4-b6c2-8a56decefcbd'
-        appType: webApp
-        appName: 'dikhakha1'
-        package: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            displayName: 'Azure Web App Deploy'
+            inputs:
+              azureSubscription: '60a760b2-d2f9-40d4-b6c2-8a56decefcbd'
+              appType: webApp
+              appName: 'dikhakha1'
+              package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
